@@ -13,6 +13,13 @@ from app.services.model_service import model_status
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    # Pre-warm ML models so that incoming inference requests are sub-second and never time out
+    try:
+        from app.services.model_service import load_model_bundle, load_sentiment_pipeline
+        load_model_bundle()
+        load_sentiment_pipeline()
+    except Exception as exc:
+        print(f"Model pre-warm warning: {exc}")
     yield
 
 

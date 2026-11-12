@@ -38,15 +38,25 @@ def load_model_bundle() -> dict[str, Any]:
 def load_sentiment_pipeline():
     from transformers import pipeline
 
-    # The model is downloaded from Hugging Face the first time this is called.
-    # It is cached locally by the Hugging Face libraries after the first download.
-    return pipeline(
-        task="text-classification",
-        model=SENTIMENT_MODEL_ID,
-        tokenizer=SENTIMENT_MODEL_ID,
-        device=-1,
-        top_k=None,
-    )
+    # Try local cache first to avoid outbound HTTP latency / timeouts
+    try:
+        return pipeline(
+            task="text-classification",
+            model=SENTIMENT_MODEL_ID,
+            tokenizer=SENTIMENT_MODEL_ID,
+            device=-1,
+            top_k=None,
+            model_kwargs={"local_files_only": True},
+        )
+    except Exception:
+        # Fall back to remote download if not cached locally
+        return pipeline(
+            task="text-classification",
+            model=SENTIMENT_MODEL_ID,
+            tokenizer=SENTIMENT_MODEL_ID,
+            device=-1,
+            top_k=None,
+        )
 
 
 def predict_ticket(subject: str, description: str) -> dict[str, Any]:

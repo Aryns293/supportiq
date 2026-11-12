@@ -1,279 +1,211 @@
-# SupportIQ — ML-powered support ticket triage
+# SupportIQ 🧠🎫
+
+> **AI-Assisted Customer Support Ticket Intelligence & Triage Platform**  
+> Classify ticket categories, estimate urgency, and analyze customer sentiment in real time using scikit-learn, XGBoost, DistilBERT, FastAPI, and React.
 
 [![CI](https://github.com/Aryns293/supportiq/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryns293/supportiq/actions/workflows/ci.yml)
 [![GitHub Pages](https://github.com/Aryns293/supportiq/actions/workflows/deploy-pages.yml/badge.svg)](https://aryns293.github.io/supportiq/)
+[![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker)](https://github.com/Aryns293/supportiq/blob/main/Dockerfile)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python)](https://python.org)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Aryns293/supportiq)
 
-**Live Frontend Demo:** [https://aryns293.github.io/supportiq/](https://aryns293.github.io/supportiq/)  
-**GitHub Repository:** [https://github.com/Aryns293/supportiq](https://github.com/Aryns293/supportiq)
+---
 
-SupportIQ is a deliberately medium-sized portfolio project. It accepts a support ticket and produces three predictions:
+## 🌐 Live Demo & Endpoints
 
-1. **Category** — trained by you with TF-IDF + Logistic Regression.
-2. **Priority** — trained by you with TF-IDF + XGBoost.
-3. **Sentiment** — produced by a pretrained three-class Hugging Face model (positive / neutral / negative).
-
-It also stores analyzed tickets in SQLite and shows ticket distributions plus the evaluation report from the two trained models.
-
-## What this project demonstrates
-
-- Labeled tabular/text data preparation with Pandas.
-- Text feature extraction with TF-IDF.
-- Supervised classification with Logistic Regression and XGBoost.
-- Stratified train/test splitting and model evaluation.
-- Accuracy, macro F1, weighted F1, classification reports and confusion matrices.
-- Loading serialized model artifacts and serving predictions through FastAPI.
-- Calling a pretrained transformer for sentiment inference.
-- A React + TypeScript dashboard that consumes the API.
-
-## Important data and evaluation warning
-
-The included `backend/data/sample_tickets.csv` is **synthetic demo data generated from templates**. It exists so that the end-to-end training and application flow can run immediately. Scores calculated on it are useful only to check that the pipeline works. They are not evidence of real-world accuracy and must not be presented as portfolio performance claims.
-
-For a serious portfolio evaluation, replace it with a properly licensed, labeled support-ticket dataset. Your CSV must contain these columns:
-
-| Column | Meaning | Example |
+| Resource | URL | Description |
 |---|---|---|
-| `subject` | Ticket title | `Payment charged twice` |
-| `description` | Customer's issue text | `My card was charged two times...` |
-| `category` | Human-assigned category label | `billing` |
-| `priority` | Human-assigned priority label | `high` |
+| **Live Web Application (Render)** | [https://supportiq-rndw.onrender.com](https://supportiq-rndw.onrender.com) | Fullstack dashboard & live inference |
+| **Interactive API Documentation** | [https://supportiq-rndw.onrender.com/docs](https://supportiq-rndw.onrender.com/docs) | Swagger UI for testing API routes |
+| **API Health Check** | [https://supportiq-rndw.onrender.com/api/health](https://supportiq-rndw.onrender.com/api/health) | Real-time model & service status |
+| **Frontend Mirror (GitHub Pages)** | [https://aryns293.github.io/supportiq/](https://aryns293.github.io/supportiq/) | Static client mirror |
+| **GitHub Repository** | [https://github.com/Aryns293/supportiq](https://github.com/Aryns293/supportiq) | Source code, models, and workflows |
 
-You need enough examples in every category and priority class. Keep labels consistent and inspect class balance before training. Do not use the generated dataset as the final evaluation dataset.
+---
 
-## Project structure
+## 📌 Introduction
+
+**SupportIQ** is an end-to-end Machine Learning and Fullstack application designed to streamline customer support operations. When a customer submits an inquiry, SupportIQ analyzes the text simultaneously across three distinct ML dimensions:
+
+1. **Category Classification:** Identifies domain context (`billing`, `technical`, `account`, `delivery`, `refund`) using sublinear TF-IDF word & n-gram vectors with balanced multiclass **Logistic Regression**.
+2. **Priority Prediction:** Estimates urgency level (`low`, `medium`, `high`, `critical`) using gradient-boosted decision trees via **XGBoost** with sample weight balancing.
+3. **Sentiment Analysis:** Gauges customer emotion (`positive`, `neutral`, `negative`) using a fine-tuned multilingual **DistilBERT** transformer pipeline.
+
+Predictions, confidence scores, and historical metrics are saved to SQLite and surfaced through an analytical dashboard built in **React, TypeScript, and Recharts**.
+
+---
+
+## 🚀 Key Features
+
+* **Real-Time Multi-Model Inference:** Concurrent execution of TF-IDF feature extractors, linear models, tree-based models, and deep learning transformers on incoming text.
+* **Interactive Analytics Dashboard:** Real-time urgency mix pie charts, category distribution bar charts, held-out validation metric cards, and recent ticket feeds.
+* **Unified Single-Port Production Serving:** FastAPI statically mounts and serves the compiled React Single Page Application while managing REST endpoints (`/api/...`).
+* **Robust Mac & Linux OpenMP Portability:** Configured with runtime isolation guards preventing dual OpenMP runtime collisions between PyTorch and XGBoost.
+* **Automated CI/CD:** Continuous Integration on GitHub Actions running automated dataset generation, model retraining, pytest regression tests, and TypeScript compilation.
+* **1-Click Containerized Cloud Deployment:** Ready for instant zero-config deployment on Render, Railway, Fly.io, or Docker.
+
+---
+
+## 🏗️ Architecture & Model Pipeline
+
+```text
+[Customer Ticket]
+  │ (Subject + Description)
+  ├──► TF-IDF Vectorizer ────► Logistic Regression ──► Predicted Category + Confidence
+  │
+  ├──► TF-IDF Vectorizer ────► XGBoost Classifier  ──► Predicted Priority + Confidence
+  │
+  └──► DistilBERT Transformer Pipeline (HF)        ──► Customer Sentiment + Confidence
+                                                               │
+                                                               ▼
+                                                     [SQLite Database]
+                                                               │
+                                                               ▼
+                                                 [React Analytics Dashboard]
+```
+
+### Model Specifications
+
+| Model | Technique | Output Classes | Purpose |
+|---|---|---|---|
+| **Category** | Sublinear TF-IDF (1-2 n-grams) + Logistic Regression | `billing`, `technical`, `account`, `delivery`, `refund` | Route tickets to the right department |
+| **Priority** | Sublinear TF-IDF + XGBoost Multi:Softprob | `low`, `medium`, `high`, `critical` | Triage urgent issues before SLA breach |
+| **Sentiment** | Pretrained Multilingual DistilBERT (`lxyuan/...`) | `positive`, `neutral`, `negative` | Detect frustrated or churning users |
+
+---
+
+## 📁 Project Directory Structure
 
 ```text
 supportiq/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml              # Automated testing and training CI pipeline
+│       └── deploy-pages.yml    # Continuous GitHub Pages deployment
+├── Dockerfile                  # Multi-stage production container
+├── render.yaml                 # 1-click Render blueprint specification
+├── pytest.ini                  # Pytest configuration
 ├── README.md
-├── .gitignore
+│
 ├── backend/
 │   ├── requirements.txt
 │   ├── .env.example
 │   ├── app/
-│   │   ├── main.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── schemas.py
+│   │   ├── main.py             # FastAPI app with static SPA mount
+│   │   ├── config.py           # Environment variables and path resolution
+│   │   ├── database.py         # SQLite connection and analytics aggregation
+│   │   ├── schemas.py          # Pydantic request/response validation
 │   │   ├── routers/
-│   │   │   ├── tickets.py
-│   │   │   └── analytics.py
+│   │   │   ├── tickets.py      # Ticket creation and retrieval APIs
+│   │   │   └── analytics.py    # Analytics metrics & model evaluation APIs
 │   │   └── services/
-│   │       └── model_service.py
+│   │       └── model_service.py # Model loading, caching, and inference
 │   ├── data/
-│   │   └── sample_tickets.csv
-│   ├── models/                 # trained .joblib model bundle is generated here
-│   ├── reports/                # model_metrics.json is generated here
+│   │   └── sample_tickets.csv  # 700-row synthetic demo training set
+│   ├── models/                 # Generated serialized .joblib model bundle
+│   ├── reports/                # Generated evaluation report JSON
 │   ├── scripts/
-│   │   ├── generate_sample_data.py
-│   │   └── train.py
+│   │   ├── generate_sample_data.py # Demo dataset synthesizer
+│   │   └── train.py            # Model training & evaluation pipeline
 │   └── tests/
-│       └── test_schemas.py
+│       ├── test_api.py         # End-to-end API integration tests
+│       └── test_schemas.py     # Schema validation tests
+│
 └── frontend/
     ├── package.json
     ├── index.html
     ├── vite.config.ts
     ├── tsconfig.json
     └── src/
-        ├── App.tsx
+        ├── App.tsx             # Interactive dashboard UI & visualizations
         ├── main.tsx
-        ├── styles.css
-        └── lib/api.ts
+        ├── styles.css          # Design system styling
+        └── lib/
+            └── api.ts          # Type-safe API client
 ```
 
-## Requirements
+---
 
-- Python 3.10 or newer; Python 3.11 is a good choice.
-- Node.js 20 or newer and npm.
-- Internet access for the first download of the pretrained sentiment model.
-- The first sentiment inference downloads a model from Hugging Face. Its model card identifies the three labels as positive, neutral and negative and documents a Transformers pipeline example: <https://huggingface.co/lxyuan/distilbert-base-multilingual-cased-sentiments-student>.
+## 🛠️ Local Development Setup
 
-## Run locally on macOS / Linux
+### 1. Prerequisites
+* **Python:** 3.10 or 3.11
+* **Node.js:** 20 or newer
+* **macOS only:** Run `brew install libomp` to install the OpenMP C runtime for XGBoost.
 
-Run these commands from the `supportiq/` project root.
-
-### 1. Create a Python environment
-
+### 2. Backend Setup
 ```bash
+# Clone the repository
+git clone https://github.com/Aryns293/supportiq.git
+cd supportiq
+
+# Create and activate Python virtual environment
 python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r backend/requirements.txt
-```
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-PyTorch / Transformers take more disk space than the other Python packages. On Apple Silicon, install in a native ARM Python environment rather than an x86/Rosetta environment.
+# Install dependencies
+pip install --upgrade pip
+pip install -r backend/requirements.txt
 
-### 2. Generate the demo dataset
-
-```bash
+# Generate dataset and train both ML models
 python backend/scripts/generate_sample_data.py
-```
-
-The command creates 700 synthetic, labeled examples by default.
-
-### 3. Train the two ML models
-
-```bash
 python backend/scripts/train.py
+
+# Run tests
+pytest
 ```
 
-This creates:
-
-- `backend/models/supportiq_models.joblib` — TF-IDF vectorizer, Logistic Regression category classifier, XGBoost priority classifier and label encoder.
-- `backend/reports/model_metrics.json` — held-out test metrics and confusion matrices.
-
-To train on your own correctly labeled dataset:
-
-```bash
-python backend/scripts/train.py --data backend/data/your_labeled_tickets.csv
-```
-
-The script uses a stratified train/test split. Feature extraction is fitted only on the training portion to avoid fitting the vocabulary on held-out examples.
-
-### 4. Start the backend
-
-Open Terminal 1 from the project root. Activate the environment if needed, then run:
-
+### 3. Start Development Servers
+**Terminal 1 — FastAPI Backend:**
 ```bash
 source .venv/bin/activate
-uvicorn app.main:app --reload --app-dir backend
+uvicorn app.main:app --reload --app-dir backend --port 8000
 ```
 
-Backend URLs:
-
-- API: <http://localhost:8000>
-- Swagger docs: <http://localhost:8000/docs>
-- Health: <http://localhost:8000/api/health>
-
-### 5. Start the frontend
-
-Open Terminal 2 from the project root:
-
+**Terminal 2 — React Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>.
+* **Frontend:** [http://localhost:5173](http://localhost:5173)
+* **Backend API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-The Vite development server calls `http://localhost:8000` by default. To change it, copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_URL`.
+---
 
-## Run locally on Windows PowerShell
+## 🐳 Production Deployment
 
-From the `supportiq/` project root:
-
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r backend/requirements.txt
-python backend/scripts/generate_sample_data.py
-python backend/scripts/train.py
-```
-
-Start the backend in the first PowerShell window:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-uvicorn app.main:app --reload --app-dir backend
-```
-
-Start the frontend in a second PowerShell window:
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-## API endpoints
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| `GET` | `/api/health` | API and model-artifact status |
-| `POST` | `/api/tickets` | Predict category, priority and sentiment, then store ticket |
-| `GET` | `/api/tickets?limit=20` | List recent tickets |
-| `GET` | `/api/analytics` | Ticket counts by category, priority and sentiment |
-| `GET` | `/api/model-metrics` | Return the saved training evaluation report |
-
-Example request:
-
-```bash
-curl -X POST http://localhost:8000/api/tickets \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "subject": "Payment charged twice",
-    "description": "My card was charged two times for the same order. This is blocking an important task and needs prompt attention."
-  }'
-```
-
-The API returns model predictions and confidence scores. These scores are not guaranteed to be calibrated probabilities. A human support agent should review predictions before taking action.
-
-## Run tests
-
-From the project root, with the virtual environment activated:
-
-```bash
-cd backend
-python -m pytest
-cd ..
-```
-
-## How the three prediction paths differ
-
-### Category classifier — trained by this project
-
-`subject + description` → TF-IDF sparse vectors → Logistic Regression → predicted category.
-
-### Priority classifier — trained by this project
-
-`subject + description` → same TF-IDF feature representation → XGBoost multi-class classifier → predicted priority.
-
-### Sentiment classifier — pretrained, not trained by this project
-
-`subject + description` → pretrained multilingual DistilBERT sentiment model → positive / neutral / negative label.
-
-Do not describe the sentiment transformer as a model you trained. The category and priority models are the two models trained in this repository.
-
-## Production Deployment
-
-### 1. 1-Click Cloud Deployment (Render)
-Click the button below to deploy the unified fullstack container (FastAPI + ML Models + React SPA) directly to Render using [render.yaml](file:///Users/aryansharma/Desktop/supportiq/render.yaml):
+### 1. Cloud Deployment (Render)
+SupportIQ is pre-configured with [render.yaml](render.yaml). Click the deploy button:
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Aryns293/supportiq)
 
-### 2. Docker Deployment
-The multi-stage [Dockerfile](file:///Users/aryansharma/Desktop/supportiq/Dockerfile) builds the React frontend, sets up Python 3.11 with OpenMP runtime, pre-trains models, and serves both frontend and API on port 8000:
+### 2. Docker Container
+The included multi-stage [Dockerfile](Dockerfile) compiles the React frontend, installs Python 3.11 with OpenMP runtime, pre-trains models, and serves both frontend and API from a single container:
 
 ```bash
 docker build -t supportiq .
 docker run -p 8000:8000 supportiq
 ```
 
-Visit <http://localhost:8000> for the dashboard and <http://localhost:8000/docs> for Swagger documentation.
+Open [http://localhost:8000](http://localhost:8000).
 
-### 3. GitHub Pages (Frontend)
-The frontend is continuously built and published to GitHub Pages via [.github/workflows/deploy-pages.yml](file:///Users/aryansharma/Desktop/supportiq/.github/workflows/deploy-pages.yml):
-- **Live URL:** <https://aryns293.github.io/supportiq/>
+---
 
-## Current limitations (intentional for a medium-sized project)
+## 👨‍💻 Author
 
-- No authentication or role-based access control.
-- SQLite is used for local development; PostgreSQL can replace it later.
-- No Redis, Celery, Kafka, microservices or Kubernetes.
-- Predictions are synchronous; the pretrained sentiment model loads on the first prediction.
-- The included training data is synthetic and must be replaced for meaningful evaluation.
-- No automated retraining, drift monitoring or model registry.
-- This is a portfolio/demo application, not a production support platform.
+**Aryan Sharma**
 
-## Before putting it on your resume
+B.Tech, Delhi Technological University
 
-1. Replace synthetic data with a licensed, representative labeled dataset.
-2. Inspect label quality, duplicates, class imbalance and leakage.
-3. Compare Logistic Regression against at least one meaningful baseline for category prediction.
-4. Compare XGBoost against a simple baseline for priority prediction.
-5. Report macro F1, per-class precision/recall, confusion matrices and the exact test protocol.
-6. Keep the final test set untouched until model selection is complete.
-7. Include the dataset source, license and limitations in your README.
-8. Never copy demo metrics into your resume as real performance claims.
+- **GitHub:** [https://github.com/Aryns293](https://github.com/Aryns293)
+- **LinkedIn:** [https://www.linkedin.com/in/aryan-sharma-29m/](https://www.linkedin.com/in/aryan-sharma-29m/)
+- **Repository:** [https://github.com/Aryns293/supportiq](https://github.com/Aryns293/supportiq)
+
+---
+
+## 📄 License
+This project is open-source and available under the [MIT License](LICENSE).

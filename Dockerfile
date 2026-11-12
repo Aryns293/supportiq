@@ -18,7 +18,10 @@ FROM python:3.11-slim AS production
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
-    KMP_DUPLICATE_LIB_OK=TRUE
+    KMP_DUPLICATE_LIB_OK=TRUE \
+    OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1
 
 # Install OpenMP runtime and dependencies for XGBoost and PyTorch
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -42,7 +45,8 @@ COPY --from=frontend-builder /build/dist ./frontend/dist
 
 # Pre-train models and download sentiment model weights at build time so the container starts instantly
 RUN python backend/scripts/generate_sample_data.py && \
-    python backend/scripts/train.py
+    python backend/scripts/train.py && \
+    python -c "from transformers import pipeline; pipeline('text-classification', model='lxyuan/distilbert-base-multilingual-cased-sentiments-student', device=-1)"
 
 EXPOSE 8000
 

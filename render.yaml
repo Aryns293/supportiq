@@ -2,7 +2,7 @@ services:
   - type: web
     name: supportiq
     env: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:

@@ -1,5 +1,12 @@
 # SupportIQ — ML-powered support ticket triage
 
+[![CI](https://github.com/Aryns293/supportiq/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryns293/supportiq/actions/workflows/ci.yml)
+[![GitHub Pages](https://github.com/Aryns293/supportiq/actions/workflows/deploy-pages.yml/badge.svg)](https://aryns293.github.io/supportiq/)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Aryns293/supportiq)
+
+**Live Frontend Demo:** [https://aryns293.github.io/supportiq/](https://aryns293.github.io/supportiq/)  
+**GitHub Repository:** [https://github.com/Aryns293/supportiq](https://github.com/Aryns293/supportiq)
+
 SupportIQ is a deliberately medium-sized portfolio project. It accepts a support ticket and produces three predictions:
 
 1. **Category** — trained by you with TF-IDF + Logistic Regression.
@@ -228,6 +235,27 @@ cd ..
 `subject + description` → pretrained multilingual DistilBERT sentiment model → positive / neutral / negative label.
 
 Do not describe the sentiment transformer as a model you trained. The category and priority models are the two models trained in this repository.
+
+## Production Deployment
+
+### 1. 1-Click Cloud Deployment (Render)
+Click the button below to deploy the unified fullstack container (FastAPI + ML Models + React SPA) directly to Render using [render.yaml](file:///Users/aryansharma/Desktop/supportiq/render.yaml):
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Aryns293/supportiq)
+
+### 2. Docker Deployment
+The multi-stage [Dockerfile](file:///Users/aryansharma/Desktop/supportiq/Dockerfile) builds the React frontend, sets up Python 3.11 with OpenMP runtime, pre-trains models, and serves both frontend and API on port 8000:
+
+```bash
+docker build -t supportiq .
+docker run -p 8000:8000 supportiq
+```
+
+Visit <http://localhost:8000> for the dashboard and <http://localhost:8000/docs> for Swagger documentation.
+
+### 3. GitHub Pages (Frontend)
+The frontend is continuously built and published to GitHub Pages via [.github/workflows/deploy-pages.yml](file:///Users/aryansharma/Desktop/supportiq/.github/workflows/deploy-pages.yml):
+- **Live URL:** <https://aryns293.github.io/supportiq/>
 
 ## Current limitations (intentional for a medium-sized project)
 

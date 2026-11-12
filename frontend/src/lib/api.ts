@@ -1,4 +1,23 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const getApiBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    // Vite local dev server runs on port 5173
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return window.location.port === '5173' ? 'http://localhost:8000' : '';
+    }
+    // GitHub Pages mirror connects to the live Render deployment
+    if (window.location.hostname.endsWith('github.io')) {
+      return 'https://supportiq-rndw.onrender.com';
+    }
+    // Render or unified production container: backend & frontend share origin
+    return '';
+  }
+  return 'http://localhost:8000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export type Ticket = {
   id: number;

@@ -27,5 +27,12 @@ SENTIMENT_MODEL_ID = os.getenv(
     "lxyuan/distilbert-base-multilingual-cased-sentiments-student",
 )
 
-_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+_default_origins = (
+    "http://localhost:5173,"
+    "http://127.0.0.1:5173,"
+    "http://localhost:8000,"
+    "https://aryns293.github.io,"
+    "https://supportiq-rndw.onrender.com"
+)
+_origins = os.getenv("CORS_ORIGINS", _default_origins)
 CORS_ORIGINS = [origin.strip() for origin in _origins.split(",") if origin.strip()]

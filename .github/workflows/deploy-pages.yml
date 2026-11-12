@@ -32,6 +32,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies & build
+        env:
+          VITE_API_URL: https://supportiq-rndw.onrender.com
         run: |
           cd frontend
           npm ci

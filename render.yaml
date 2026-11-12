@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: supportiq
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8000

@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local database and generated model artifacts
+backend/data/*.db
+backend/models/*.joblib
+backend/reports/*.json
+
+# Environment files
+.env
+backend/.env
+frontend/.env
+
+# Frontend
+node_modules/
+frontend/dist/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
